@@ -1,8 +1,11 @@
-﻿using System;
-
-public class Class1
+﻿namespace Users.API.DTOs
 {
-	public Class1()
-	{
-	}
+    public record UserResponse(
+        Guid Id,
+        string Nombre,
+        string Apellido,
+        string Email,
+        DateTime FechaRegistro,
+        bool Activo
+    ); //
 }

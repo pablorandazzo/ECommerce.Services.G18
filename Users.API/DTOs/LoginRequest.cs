@@ -1,8 +1,7 @@
-﻿using System;
-
-public class Class1
+﻿namespace Users.API.DTOs
 {
-	public Class1()
-	{
-	}
+    public record LoginRequest(
+        string Email,
+        string Password
+    ); //
 }
