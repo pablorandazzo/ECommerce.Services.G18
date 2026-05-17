@@ -26,6 +26,8 @@ namespace Cart.API.ExceptionHandlers
             }
             problemDetails.Extensions.Add("correlationId", correlationId);
 
+            Serilog.Log.Error(exception, "Error inesperado no controlado. CorrelationId: {CorrelationId}, Path: {Instance}", correlationId, problemDetails.Instance);
+
             httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
             await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 
@@ -34,4 +36,5 @@ namespace Cart.API.ExceptionHandlers
         }
     }
 }
+
 

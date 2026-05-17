@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Cart.API.Exceptions;
 
@@ -33,6 +33,8 @@ namespace Cart.API.ExceptionHandlers
             }
             problemDetails.Extensions.Add("correlationId", correlationId);
 
+            Serilog.Log.Warning("Error de negocio: {Message} - Código de error: {ErrorCode}", ex.Message, ex.ErrorCode);
+
             httpContext.Response.StatusCode = StatusCodes.Status409Conflict;
             await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 
@@ -40,4 +42,5 @@ namespace Cart.API.ExceptionHandlers
         }
     }
 }
+
 

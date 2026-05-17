@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Users.API.Exceptions;
 
@@ -8,13 +8,13 @@ namespace Users.API.ExceptionHandlers
     {
         public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
-            // Verificamos si la excepciÃ³n es de tipo NotFoundException
+            // Verificamos si la excepción es de tipo NotFoundException
             if (exception is NotFoundException == false)
             {
                 return false;
             }
 
-            // Convertimos al tipo especÃ­fico
+            // Convertimos al tipo específico
             NotFoundException ex = (NotFoundException)exception;
 
             // Construimos la respuesta
@@ -35,6 +35,8 @@ namespace Users.API.ExceptionHandlers
             }
             problemDetails.Extensions.Add("correlationId", correlationId);
 
+            Serilog.Log.Warning("Error de negocio: {Message} - Código de error: {ErrorCode}", ex.Message, ex.ErrorCode);
+
             httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
             await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 
@@ -42,4 +44,5 @@ namespace Users.API.ExceptionHandlers
         }
     }
 }
+
 
