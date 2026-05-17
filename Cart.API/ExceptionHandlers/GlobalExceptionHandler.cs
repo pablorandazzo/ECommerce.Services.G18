@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cart.API.ExceptionHandlers
@@ -12,7 +12,7 @@ namespace Cart.API.ExceptionHandlers
             problemDetails.Status = StatusCodes.Status500InternalServerError;
             problemDetails.Title = "Error Interno del Servidor";
             problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1";
-            problemDetails.Detail = "OcurriÃ³ un error inesperado. Por favor, contacte al administrador.";
+            problemDetails.Detail = "Ocurrió un error inesperado. Por favor, contacte al administrador.";
             problemDetails.Instance = httpContext.Request.Path;
 
             // Usamos cÃ³digos genÃ©ricos para errores no previstos
