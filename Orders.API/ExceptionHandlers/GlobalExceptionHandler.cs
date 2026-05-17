@@ -24,6 +24,9 @@ namespace Orders.API.ExceptionHandlers
             }
             problemDetails.Extensions.Add("correlationId", correlationId);
 
+            // Registramos el error inesperado como Error de diagnóstico
+            Serilog.Log.Error(exception, "Error inesperado capturado en {Path}: {Message}", httpContext.Request.Path, exception.Message);
+
             httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
             await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 

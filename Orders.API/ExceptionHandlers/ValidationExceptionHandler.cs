@@ -32,6 +32,9 @@ namespace Orders.API.ExceptionHandlers
             }
             problemDetails.Extensions.Add("correlationId", correlationId);
 
+            // Registramos el error de negocio/validación como Warning
+            Serilog.Log.Warning("Error de negocio: {Message} - Código de error: {ErrorCode}", ex.Message, ex.ErrorCode);
+
             httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
             await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 
