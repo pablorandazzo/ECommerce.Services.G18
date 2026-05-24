@@ -15,9 +15,9 @@ namespace Products.API.ExceptionHandlers
             problemDetails.Detail = "Ocurrió un error inesperado. Por favor, contacte al administrador.";
             problemDetails.Instance = httpContext.Request.Path;
 
-            // Usamos códigos genéricos para errores no previstos
-            problemDetails.Extensions.Add("errorCode", "GEN-001");
-            problemDetails.Extensions.Add("errorMessage", "Error interno no controlado.");
+            // Usamos el código de error interno del catálogo
+            problemDetails.Extensions.Add("errorCode", Constants.ProductErrors.InternalErrorCode);
+            problemDetails.Extensions.Add("errorMessage", Constants.ProductErrors.InternalErrorMessage);
             
             string correlationId = "";
             if (httpContext.Request.Headers.ContainsKey("X-Correlation-Id"))

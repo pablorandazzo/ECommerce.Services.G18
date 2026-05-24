@@ -7,7 +7,7 @@ namespace Users.API.ExceptionHandlers
     {
         public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
-            // Este handler captura TODO lo que llegue hasta aquÃ­
+            // Este handler captura TODO lo que llegue hasta aquí
             ProblemDetails problemDetails = new ProblemDetails();
             problemDetails.Status = StatusCodes.Status500InternalServerError;
             problemDetails.Title = "Error Interno del Servidor";
@@ -15,9 +15,9 @@ namespace Users.API.ExceptionHandlers
             problemDetails.Detail = "Ocurrió un error inesperado. Por favor, contacte al administrador.";
             problemDetails.Instance = httpContext.Request.Path;
 
-            // Usamos cÃ³digos genÃ©ricos para errores no previstos
-            problemDetails.Extensions.Add("errorCode", "GEN-001");
-            problemDetails.Extensions.Add("errorMessage", "Error interno no controlado.");
+            // Usamos el código de error interno del catálogo
+            problemDetails.Extensions.Add("errorCode", Constants.UserErrors.InternalError.Code);
+            problemDetails.Extensions.Add("errorMessage", Constants.UserErrors.InternalError.Message);
             
             string correlationId = "";
             if (httpContext.Request.Headers.ContainsKey("X-Correlation-Id"))
@@ -29,7 +29,7 @@ namespace Users.API.ExceptionHandlers
             httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
             await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 
-            // Siempre devolvemos true porque es el Ãºltimo handler de la cadena (red de seguridad)
+            // Siempre devolvemos true porque es el último handler de la cadena (red de seguridad)
             return true;
         }
     }
