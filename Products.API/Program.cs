@@ -1,11 +1,20 @@
 using Products.API.ExceptionHandlers;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Método tradicional para configurar Serilog consumiendo appsettings.json
+void ConfigurarSerilog(HostBuilderContext context, LoggerConfiguration configuration)
+{
+    configuration.ReadFrom.Configuration(context.Configuration);
+}
+
+builder.Host.UseSerilog(ConfigurarSerilog);
 
 // Add services to the container.
 builder.Services.AddProblemDetails();
 
-// Registro de Handlers en orden jerárquico (Paso a paso Persona A)
+// Registro de Handlers en orden jerárquico
 builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
 builder.Services.AddExceptionHandler<NotFoundExceptionHandler>();
 builder.Services.AddExceptionHandler<BusinessRuleExceptionHandler>();
