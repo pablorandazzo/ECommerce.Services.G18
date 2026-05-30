@@ -365,3 +365,7 @@ FodyWeavers.xsd
 
 # Contexto TP y Skills
 Contexto/
+
+# Archivos de base de datos local SQLite
+*.db
+*.db-journal
