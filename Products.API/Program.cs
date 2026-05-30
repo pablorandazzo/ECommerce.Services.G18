@@ -1,20 +1,17 @@
 using Products.API.ExceptionHandlers;
+using Products.API.Extensions;
+using Products.API.Middleware;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Método tradicional para configurar Serilog consumiendo appsettings.json
-void ConfigurarSerilog(HostBuilderContext context, LoggerConfiguration configuration)
-{
-    configuration.ReadFrom.Configuration(context.Configuration);
-}
-
-builder.Host.UseSerilog(ConfigurarSerilog);
+// Inicializar Logging (Serilog)
+builder.AddAppLogging();
 
 // Add services to the container.
 builder.Services.AddProblemDetails();
 
-// Registro de Handlers en orden jerárquico
+// Registro de Handlers en orden jerárquico (Paso a paso Persona A)
 builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
 builder.Services.AddExceptionHandler<NotFoundExceptionHandler>();
 builder.Services.AddExceptionHandler<BusinessRuleExceptionHandler>();
@@ -52,11 +49,27 @@ app.Use(async (context, next) =>
     // 4. Lo agregamos a los Headers de la respuesta HTTP para que el cliente lo reciba
     context.Response.Headers[headerKey] = correlationId;
 
-    // 5. Continuamos con el siguiente paso en la ejecución de la petición
-    await next();
+    // 5. Metemos el Correlation ID en el contexto de logs de Serilog para que aparezca en consola y archivos
+    using (Serilog.Context.LogContext.PushProperty("CorrelationId", correlationId))
+    {
+        // 6. Continuamos con el siguiente paso en la ejecución de la petición
+        await next();
+    }
 });
 
 app.UseExceptionHandler(); // Middleware obligatorio para usar IExceptionHandler
+
+// Request logging de Serilog estructurado (estilo MiniApi)
+app.UseSerilogRequestLogging(options =>
+{
+    options.GetLevel = (httpContext, _, ex) =>
+        (ex != null) ? Serilog.Events.LogEventLevel.Error :
+            (httpContext.Request.Path.StartsWithSegments("/health"))
+                ? Serilog.Events.LogEventLevel.Verbose : Serilog.Events.LogEventLevel.Information;
+});
+
+// Middleware de Auditoría para registrar POST/PUT/DELETE
+app.UseMiddleware<AuditMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
