@@ -20,7 +20,7 @@ namespace Notifications.API.Data
 
         private SqliteConnection CreateConnection()
         {
-            string connectionString = _config.GetConnectionString("DefaultConnection");
+            string? connectionString = _config.GetConnectionString("DefaultConnection");
             if (string.IsNullOrEmpty(connectionString))
             {
                 connectionString = "Data Source=notifications.db";

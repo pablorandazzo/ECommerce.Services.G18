@@ -18,7 +18,7 @@ namespace Orders.API.Data
 
         public void Initialize()
         {
-            string connectionString = _config.GetConnectionString("DefaultConnection");
+            string? connectionString = _config.GetConnectionString("DefaultConnection");
             if (string.IsNullOrEmpty(connectionString))
             {
                 connectionString = "Data Source=orders.db";
