@@ -39,6 +39,7 @@ namespace Products.API.Extensions
 
             // Registrar Health Checks
             services.AddHealthChecks()
+                .AddCheck<PersistencyHealthCheck>("persistency-check", null, new string[] { "database" })
                 .AddCheck<ApiStatusCheck>("api-status", null, new string[] { "api" });
 
             // Registrar Health Checks UI
