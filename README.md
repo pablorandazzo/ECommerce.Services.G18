@@ -12,11 +12,11 @@ A continuación, se detalla la topología de los microservicios y sus interaccio
 
 ```mermaid
 graph TD
-    Client[Cliente / Swagger UI] -->|HTTP| UsersAPI[Users.API :5002]
-    Client -->|HTTP| ProductsAPI[Products.API :5001]
-    Client -->|HTTP| CartAPI[Cart.API :5004]
-    Client -->|HTTP| OrdersAPI[Orders.API :5003]
-    Client -->|HTTP| NotificationsAPI[Notifications.API :5005]
+    Client["Cliente / Swagger UI"] -->|HTTP| UsersAPI["Users.API :5002"]
+    Client -->|HTTP| ProductsAPI["Products.API :5001"]
+    Client -->|HTTP| CartAPI["Cart.API :5004"]
+    Client -->|HTTP| OrdersAPI["Orders.API :5003"]
+    Client -->|HTTP| NotificationsAPI["Notifications.API :5005"]
 
     %% Interacciones
     CartAPI -->|Valida Stock & Info| ProductsAPI
@@ -25,12 +25,12 @@ graph TD
     OrdersAPI -->|Notifica Alta| NotificationsAPI
 
     %% Bases de Datos
-    subgraph Persistencia Local (SQLite + Dapper)
-        DbUsers[(Users.db)] -.- UsersAPI
-        DbProducts[(Products.db)] -.- ProductsAPI
-        DbCart[(Cart.db)] -.- CartAPI
-        DbOrders[(Orders.db)] -.- OrdersAPI
-        DbNotifications[(Notifications.db)] -.- NotificationsAPI
+    subgraph Persistencia ["Persistencia Local (SQLite + Dapper)"]
+        DbUsers[(Users.db)] --- UsersAPI
+        DbProducts[(Products.db)] --- ProductsAPI
+        DbCart[(Cart.db)] --- CartAPI
+        DbOrders[(Orders.db)] --- OrdersAPI
+        DbNotifications[(Notifications.db)] --- NotificationsAPI
     end
 
     %% Estilo
@@ -38,7 +38,7 @@ graph TD
     style ProductsAPI fill:#bbf,stroke:#333,stroke-width:2px
     style CartAPI fill:#bfb,stroke:#333,stroke-width:2px
     style OrdersAPI fill:#fbb,stroke:#333,stroke-width:2px
-    style NotificationsAPI fill:#ybf,stroke:#333,stroke-width:2px
+    style NotificationsAPI fill:#bdf,stroke:#333,stroke-width:2px
 ```
 
 ---
