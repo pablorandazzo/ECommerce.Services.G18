@@ -1,4 +1,4 @@
-namespace Orders.API.Exceptions;
+﻿namespace Orders.API.Exceptions;
 
 public class ValidationException : Exception
 {
@@ -9,3 +9,4 @@ public class ValidationException : Exception
         ErrorCode = errorCode;
     }
 }
+
