@@ -1,9 +1,14 @@
 using Orders.API.ExceptionHandlers;
+using Orders.API.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddProblemDetails();
+
+// Registrar HttpContextAccessor y el delegating handler para propagar Correlation ID en llamadas salientes
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<CorrelationIdDelegatingHandler>();
 
 // Registro de Handlers en orden jerárquico (Paso a paso Persona A)
 builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
