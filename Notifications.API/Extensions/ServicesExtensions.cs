@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Notifications.API.ExceptionHandlers;
 using Notifications.API.HealthChecks;
+using Notifications.API.Data;
 
 namespace Notifications.API.Extensions
 {
@@ -17,12 +18,20 @@ namespace Notifications.API.Extensions
             services.AddExceptionHandler<BusinessRuleExceptionHandler>();
             services.AddExceptionHandler<GlobalExceptionHandler>();
 
+            // Registrar persistencia y base de datos
+            services.AddSingleton<DatabaseInitializer>();
+            services.AddScoped<NotificationRepository>();
+
+            // Registrar HttpClient para comunicación con Users.API
+            services.AddHttpClient();
+
             // Registrar Swagger/OpenAPI
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
 
             // Registrar Health Checks
             services.AddHealthChecks()
+                .AddCheck<PersistencyHealthCheck>("persistency-check", null, new string[] { "database" })
                 .AddCheck<ApiStatusCheck>("api-status", null, new string[] { "api" });
 
             // Registrar Health Checks UI

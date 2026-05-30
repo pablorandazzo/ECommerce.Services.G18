@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Products.API.ExceptionHandlers;
 using Products.API.HealthChecks;
+using Products.API.Data;
 
 namespace Products.API.Extensions
 {
@@ -16,6 +17,13 @@ namespace Products.API.Extensions
             services.AddExceptionHandler<NotFoundExceptionHandler>();
             services.AddExceptionHandler<BusinessRuleExceptionHandler>();
             services.AddExceptionHandler<GlobalExceptionHandler>();
+
+            // Registrar persistencia y base de datos
+            services.AddSingleton<DatabaseInitializer>();
+            services.AddScoped<ProductRepository>();
+
+            // Registrar HttpClient para comunicación externa
+            services.AddHttpClient();
 
             // Registrar Swagger/OpenAPI
             services.AddEndpointsApiExplorer();

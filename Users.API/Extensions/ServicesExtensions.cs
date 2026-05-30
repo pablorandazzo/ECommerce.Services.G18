@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Users.API.ExceptionHandlers;
 using Users.API.HealthChecks;
+using Users.API.Data;
 
 namespace Users.API.Extensions
 {
@@ -17,12 +18,17 @@ namespace Users.API.Extensions
             services.AddExceptionHandler<BusinessRuleExceptionHandler>();
             services.AddExceptionHandler<GlobalExceptionHandler>();
 
+            // Registrar persistencia y base de datos
+            services.AddSingleton<DatabaseInitializer>();
+            services.AddScoped<UserRepository>();
+
             // Registrar Swagger/OpenAPI
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
 
             // Registrar Health Checks
             services.AddHealthChecks()
+                .AddCheck<PersistencyHealthCheck>("persistency-check", null, new string[] { "database" })
                 .AddCheck<ApiStatusCheck>("api-status", null, new string[] { "api" });
 
             // Registrar Health Checks UI
