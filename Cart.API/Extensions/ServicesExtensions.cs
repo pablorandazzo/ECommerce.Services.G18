@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Cart.API.ExceptionHandlers;
 using Cart.API.HealthChecks;
 using Cart.API.Infrastructure;
+using Cart.API.Data;
 
 namespace Cart.API.Extensions
 {
@@ -22,12 +23,21 @@ namespace Cart.API.Extensions
             services.AddExceptionHandler<BusinessRuleExceptionHandler>();
             services.AddExceptionHandler<GlobalExceptionHandler>();
 
+            // Registrar persistencia y base de datos
+            services.AddSingleton<DatabaseInitializer>();
+            services.AddScoped<CartRepository>();
+
+            // Registrar HttpClient configurado con el CorrelationIdDelegatingHandler
+            services.AddHttpClient("ProductsApi")
+                .AddHttpMessageHandler<CorrelationIdDelegatingHandler>();
+
             // Registrar Swagger/OpenAPI
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
 
             // Registrar Health Checks
             services.AddHealthChecks()
+                .AddCheck<PersistencyHealthCheck>("persistency-check", null, new string[] { "database" })
                 .AddCheck<ApiStatusCheck>("api-status", null, new string[] { "api" });
 
             // Registrar Health Checks UI

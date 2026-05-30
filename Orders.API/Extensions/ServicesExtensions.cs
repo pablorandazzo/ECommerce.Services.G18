@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Orders.API.ExceptionHandlers;
 using Orders.API.HealthChecks;
 using Orders.API.Infrastructure;
+using Orders.API.Data;
 
 namespace Orders.API.Extensions
 {
@@ -22,12 +23,21 @@ namespace Orders.API.Extensions
             services.AddExceptionHandler<BusinessRuleExceptionHandler>();
             services.AddExceptionHandler<GlobalExceptionHandler>();
 
+            // Registrar persistencia y base de datos
+            services.AddSingleton<DatabaseInitializer>();
+            services.AddScoped<OrderRepository>();
+
+            // Registrar HttpClient configurado con el CorrelationIdDelegatingHandler
+            services.AddHttpClient("ECommerceClients")
+                .AddHttpMessageHandler<CorrelationIdDelegatingHandler>();
+
             // Registrar Swagger/OpenAPI
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
 
             // Registrar Health Checks
             services.AddHealthChecks()
+                .AddCheck<PersistencyHealthCheck>("persistency-check", null, new string[] { "database" })
                 .AddCheck<ApiStatusCheck>("api-status", null, new string[] { "api" });
 
             // Registrar Health Checks UI

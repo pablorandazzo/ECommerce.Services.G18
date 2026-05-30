@@ -2,8 +2,11 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using HealthChecks.UI.Client;
 using Notifications.API.Middleware;
+using Notifications.API.Data;
+using Notifications.API.Extensions.Endpoints;
 using Serilog;
 using System;
 
@@ -72,6 +75,16 @@ namespace Notifications.API.Extensions
             {
                 setup.UIPath = "/health-ui";
             });
+
+            // 7. Inicializar base de datos SQLite
+            using (var scope = app.Services.CreateScope())
+            {
+                var dbInitializer = scope.ServiceProvider.GetService<DatabaseInitializer>();
+                dbInitializer?.Initialize();
+            }
+
+            // 8. Mapear Endpoints de Notificaciones
+            app.MapNotificationEndpoints();
         }
     }
 }
