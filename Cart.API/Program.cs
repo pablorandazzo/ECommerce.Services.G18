@@ -1,5 +1,15 @@
 using Cart.API.ExceptionHandlers;
+using Serilog;
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Método tradicional para configurar Serilog consumiendo appsettings.json
+void ConfigurarSerilog(HostBuilderContext context, LoggerConfiguration configuration)
+{
+    configuration.ReadFrom.Configuration(context.Configuration);
+}
+
+builder.Host.UseSerilog(ConfigurarSerilog);
 
 // Add services to the container.
 
