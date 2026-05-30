@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
@@ -26,7 +26,7 @@ namespace Orders.API.HealthChecks
                 string? connectionString = _config.GetConnectionString("DefaultConnection");
                 if (string.IsNullOrEmpty(connectionString))
                 {
-                    connectionString = "Data Source=products.db";
+                    connectionString = "Data Source=orders.db";
                 }
 
                 // Abrimos una conexiÃ³n a la base de datos SQLite para probar la disponibilidad
