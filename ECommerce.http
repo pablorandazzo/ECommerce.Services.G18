@@ -1,0 +1,235 @@
+# ==============================================================================
+# DEMO INTERACTIVA - E-COMMERCE MICROSERVICES (GRUPO 18)
+# ==============================================================================
+# Este archivo contiene las peticiones preparadas para la demo en vivo.
+# Puede ser ejecutado directamente en Visual Studio (con la herramienta de REST Client) 
+# o VS Code (extensión REST Client).
+#
+# Asegúrate de iniciar los 5 microservicios antes de ejecutar estas pruebas.
+# ==============================================================================
+
+@productsUrl = http://localhost:5001
+@usersUrl = http://localhost:5002
+@ordersUrl = http://localhost:5003
+@cartUrl = http://localhost:5004
+@notificationsUrl = http://localhost:5005
+
+# ------------------------------------------------------------------------------
+# 1. TRAZABILIDAD (MONITOREO DE SALUD)
+# ------------------------------------------------------------------------------
+
+### 1.1. Monitoreo de Salud General - Products.API
+# Debe responder 200 OK con un JSON detallado que indica el Uptime y Runtime del sistema.
+GET {{productsUrl}}/health
+Accept: application/json
+
+### 1.2. Monitoreo de Salud General - Users.API
+GET {{usersUrl}}/health
+Accept: application/json
+
+### 1.3. Monitoreo de Salud General - Orders.API
+GET {{ordersUrl}}/health
+Accept: application/json
+
+### 1.4. Monitoreo de Salud General - Cart.API
+GET {{cartUrl}}/health
+Accept: application/json
+
+### 1.5. Monitoreo de Salud General - Notifications.API
+GET {{notificationsUrl}}/health
+Accept: application/json
+
+
+# ------------------------------------------------------------------------------
+# 2. TRAZABILIDAD (CORRELATION ID Y LOGGING)
+# ------------------------------------------------------------------------------
+
+### 2.1. Petición con Correlation ID personalizado
+# Inyectamos una cabecera 'X-Correlation-Id'.
+# La API debe responder con la misma cabecera exacta de trazabilidad.
+# Adicionalmente, verifica en 'Products.API/logs/audit.log' que el log contenga este CorrelationId.
+GET {{productsUrl}}/api/products
+X-Correlation-Id: DEMO-TICKET-3-2-TEST-UUID-9999
+Accept: application/json
+
+
+# ------------------------------------------------------------------------------
+# 3. USERS.API - DEMO DE USUARIOS Y AUTENTICACIÓN
+# ------------------------------------------------------------------------------
+
+### 3.1. Registro de Nuevo Usuario (Éxito - 201 Created)
+POST {{usersUrl}}/api/users/register
+Content-Type: application/json
+
+{
+  "nombre": "Maria",
+  "apellido": "Gonzalez",
+  "email": "maria.gonzalez@email.com",
+  "password": "MiPasswordSuperSeguro123!"
+}
+
+### 3.2. Intento de Registro con Email Duplicado (Error - 409 Conflict [USR-001])
+# Debe responder un Problem Details con error USR-001 e indicar que el email ya está registrado.
+POST {{usersUrl}}/api/users/register
+Content-Type: application/json
+
+{
+  "nombre": "Maria Clara",
+  "apellido": "Gonzalez",
+  "email": "maria.gonzalez@email.com",
+  "password": "OtraPasswordDiferente!"
+}
+
+### 3.3. Intento de Registro con Campos Faltantes (Error - 400 BadRequest [USR-002])
+# Debe fallar la validación y retornar el catálogo USR-002 detallando las faltas.
+POST {{usersUrl}}/api/users/register
+Content-Type: application/json
+
+{
+  "nombre": "",
+  "apellido": "Gonzalez",
+  "email": "email-invalido",
+  "password": ""
+}
+
+### 3.4. Login de Usuario - Éxito (200 OK)
+POST {{usersUrl}}/api/users/login
+Content-Type: application/json
+
+{
+  "email": "maria.gonzalez@email.com",
+  "password": "MiPasswordSuperSeguro123!"
+}
+
+### 3.5. Login de Usuario - Contraseña Incorrecta (Error - 401 Unauthorized [USR-003])
+# Incrementa en 1 los IntentosFallidos.
+POST {{usersUrl}}/api/users/login
+Content-Type: application/json
+
+{
+  "email": "maria.gonzalez@email.com",
+  "password": "PasswordEquivocada!"
+}
+
+### 3.6. Login de Usuario - Cuenta Bloqueada (Error - 403 Forbidden [USR-004])
+# Al superar los 3 intentos fallidos consecutivos, el usuario es bloqueado (Activo = false).
+# Debe retornar error USR-004 solicitando contactar a soporte.
+POST {{usersUrl}}/api/users/login
+Content-Type: application/json
+
+{
+  "email": "maria.gonzalez@email.com",
+  "password": "PasswordEquivocada!"
+}
+
+
+# ------------------------------------------------------------------------------
+# 4. PRODUCTS.API - DEMO DE CATÁLOGO DE PRODUCTOS
+# ------------------------------------------------------------------------------
+
+### 4.1. Crear un Producto (Éxito - 201 Created)
+POST {{productsUrl}}/api/products
+Content-Type: application/json
+
+{
+  "nombre": "Notebook Dell XPS 15",
+  "descripcion": "Laptop 15 pulgadas, 32GB RAM, 1TB SSD",
+  "precio": 1500.00,
+  "stock": 10,
+  "categoria": "Electrónica"
+}
+
+### 4.2. Obtener un Producto por ID (Éxito - 200 OK)
+# Reemplazar por el ID real retornado en el POST anterior.
+GET {{productsUrl}}/api/products/3fa85f64-5717-4562-b3fc-2c963f66afa6
+Accept: application/json
+
+### 4.3. Obtener un Producto por ID Inexistente (Error - 404 Not Found [PRD-001])
+# Debe retornar error PRD-001 con Problem Details.
+GET {{productsUrl}}/api/products/ffffffff-ffff-ffff-ffff-ffffffffffff
+Accept: application/json
+
+### 4.4. Crear un Producto con Nombre Duplicado en la Categoría (Error - 409 Conflict [PRD-003])
+# Debe saltar la regla de negocio y retornar error PRD-003.
+POST {{productsUrl}}/api/products
+Content-Type: application/json
+
+{
+  "nombre": "Notebook Dell XPS 15",
+  "descripcion": "Laptop duplicada",
+  "precio": 1499.99,
+  "stock": 5,
+  "categoria": "Electrónica"
+}
+
+
+# ------------------------------------------------------------------------------
+# 5. CART.API - DEMO DE GESTIÓN DE CARRITO
+# ------------------------------------------------------------------------------
+
+### 5.1. Obtener Carrito de Usuario por ID (Éxito - 200 OK)
+# Reemplazar con el GUID del usuario creado en Users.API
+GET {{cartUrl}}/api/cart/a1b2c3d4-0000-0000-0000-111122223333
+Accept: application/json
+
+### 5.2. Agregar Ítem al Carrito (Éxito - 200 OK)
+# Debe asociarse al producto creado anteriormente.
+POST {{cartUrl}}/api/cart/a1b2c3d4-0000-0000-0000-111122223333/items
+Content-Type: application/json
+
+{
+  "productoId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "cantidad": 2
+}
+
+### 5.3. Agregar Ítem al Carrito con Stock Insuficiente (Error - 422 Unprocessable [CRT-003])
+# Intenta comprar 99 notebooks Dell cuando el stock de Products.API es de 10.
+# Debe rechazar y retornar error CRT-003 indicando el stock disponible.
+POST {{cartUrl}}/api/cart/a1b2c3d4-0000-0000-0000-111122223333/items
+Content-Type: application/json
+
+{
+  "productoId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "cantidad": 99
+}
+
+
+# ------------------------------------------------------------------------------
+# 6. ORDERS.API - DEMO DE ORDENES Y COMPRAS
+# ------------------------------------------------------------------------------
+
+### 6.1. Crear Nueva Orden de Compra (Éxito - 201 Created)
+# Lógica interna: Valida usuario, valida productos y stock llamando a Products/Users APIs,
+# calcula el total del ítem, reduce stock de productos y envía notificación asíncrona.
+POST {{ordersUrl}}/api/orders
+Content-Type: application/json
+
+{
+  "usuarioId": "a1b2c3d4-0000-0000-0000-111122223333",
+  "items": [
+    {
+      "productoId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "cantidad": 2
+    }
+  ]
+}
+
+### 6.2. Intentar actualizar estado de Orden a Transición Inválida (Error - 409 Conflict [ORD-006])
+# Reemplazar con el ID de la orden generada anteriormente.
+# Intenta cambiar el estado de la orden directo de "Entregada" a "Pendiente".
+# Debe rechazar la regla de transición de estado y retornar error ORD-006.
+PUT {{ordersUrl}}/api/orders/f1e2d3c4-0000-0000-0000-aabbccddeeff/status
+Content-Type: application/json
+
+{
+  "estado": "Pendiente"
+}
+
+
+# ------------------------------------------------------------------------------
+# 7. NOTIFICATIONS.API - DEMO DE NOTIFICACIONES
+# ------------------------------------------------------------------------------
+
+### 7.1. Listar notificaciones de un Usuario (Éxito - 200 OK)
+GET {{notificationsUrl}}/api/notifications/a1b2c3d4-0000-0000-0000-111122223333
+Accept: application/json

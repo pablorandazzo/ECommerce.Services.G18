@@ -24,7 +24,15 @@ namespace Users.API.Extensions
 
             // Registrar Swagger/OpenAPI
             services.AddEndpointsApiExplorer();
-            services.AddSwaggerGen();
+            services.AddSwaggerGen(options =>
+            {
+                string xmlFile = typeof(ServicesExtensions).Assembly.GetName().Name + ".xml";
+                string xmlPath = System.IO.Path.Combine(System.AppContext.BaseDirectory, xmlFile);
+                if (System.IO.File.Exists(xmlPath))
+                {
+                    options.IncludeXmlComments(xmlPath);
+                }
+            });
 
             // Registrar Health Checks
             services.AddHealthChecks()
