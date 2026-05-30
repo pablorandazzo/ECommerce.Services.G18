@@ -1,4 +1,4 @@
-namespace Orders.API.Exceptions;
+﻿namespace Orders.API.Exceptions;
 
 public class BusinessRuleException : Exception
 {
@@ -9,3 +9,4 @@ public class BusinessRuleException : Exception
         ErrorCode = errorCode;
     }
 }
+

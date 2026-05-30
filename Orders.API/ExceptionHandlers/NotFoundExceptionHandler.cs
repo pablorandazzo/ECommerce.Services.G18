@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Diagnostics;
+﻿using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Orders.API.Exceptions;
 
@@ -8,13 +8,16 @@ namespace Orders.API.ExceptionHandlers
     {
         public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
+            // Verificamos si la excepciÃ³n es de tipo NotFoundException
             if (exception is NotFoundException == false)
             {
                 return false;
             }
 
+            // Convertimos al tipo especÃ­fico
             NotFoundException ex = (NotFoundException)exception;
 
+            // Construimos la respuesta
             ProblemDetails problemDetails = new ProblemDetails();
             problemDetails.Status = StatusCodes.Status404NotFound;
             problemDetails.Title = "Recurso no encontrado";
@@ -39,3 +42,4 @@ namespace Orders.API.ExceptionHandlers
         }
     }
 }
+

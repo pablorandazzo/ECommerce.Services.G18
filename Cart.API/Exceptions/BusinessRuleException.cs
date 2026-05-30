@@ -1,8 +1,12 @@
-﻿namespace Cart.API.Exceptions
+﻿namespace Cart.API.Exceptions;
+
+public class BusinessRuleException : Exception
 {
-    public class BusinessRuleException : Exception
+    public string ErrorCode { get; }
+
+    public BusinessRuleException(string errorCode, string message) : base(message)
     {
-        public string ErrorCode { get; }
-        public BusinessRuleException(string errorCode, string message) : base(message) => ErrorCode = errorCode;
+        ErrorCode = errorCode;
     }
 }
+

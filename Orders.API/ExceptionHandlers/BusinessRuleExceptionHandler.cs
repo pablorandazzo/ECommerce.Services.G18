@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Diagnostics;
+﻿using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Orders.API.Exceptions;
 
@@ -8,6 +8,7 @@ namespace Orders.API.ExceptionHandlers
     {
         public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
+            // Verificamos si es un error de regla de negocio
             if (exception is BusinessRuleException == false)
             {
                 return false;
@@ -39,3 +40,4 @@ namespace Orders.API.ExceptionHandlers
         }
     }
 }
+

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Diagnostics;
+﻿using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Cart.API.Exceptions;
 
@@ -20,7 +20,7 @@ namespace Cart.API.ExceptionHandlers
             // Creamos el objeto de respuesta de error (Problem Details)
             ProblemDetails problemDetails = new ProblemDetails();
             problemDetails.Status = StatusCodes.Status400BadRequest;
-            problemDetails.Title = "Error de Validación";
+            problemDetails.Title = "Error de ValidaciÃ³n";
             problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1";
             problemDetails.Detail = ex.Message;
             problemDetails.Instance = httpContext.Request.Path;
