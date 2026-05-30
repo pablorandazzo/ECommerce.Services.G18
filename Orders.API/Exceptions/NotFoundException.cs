@@ -1,4 +1,4 @@
-namespace Orders.API.Exceptions;
+﻿namespace Orders.API.Exceptions;
 
 public class NotFoundException : Exception
 {
@@ -9,3 +9,4 @@ public class NotFoundException : Exception
         ErrorCode = errorCode;
     }
 }
+
