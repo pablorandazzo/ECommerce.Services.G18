@@ -1,5 +1,18 @@
+using Serilog;
 using Notifications.API.ExceptionHandlers;
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Asegurar la creación de la carpeta de logs
+var logsPath = Path.Combine(builder.Environment.ContentRootPath, "logs");
+if (!Directory.Exists(logsPath))
+{
+    Directory.CreateDirectory(logsPath);
+}
+
+// Configurar Serilog consumiendo appsettings.json
+builder.Host.UseSerilog((context, configuration) => 
+    configuration.ReadFrom.Configuration(context.Configuration));
 
 // Add services to the container.
 builder.Services.AddProblemDetails();
