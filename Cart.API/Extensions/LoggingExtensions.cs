@@ -1,4 +1,4 @@
-﻿using Serilog;
+using Serilog;
 using Serilog.Events;
 using Serilog.Filters;
 
@@ -14,26 +14,23 @@ namespace Cart.API.Extensions
                 .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Information)
                 .Enrich.FromLogContext()
 
-                // ALUMNO: LOG DE CONSOLA: libre para usarse como quieran
+                // LOG DE CONSOLA: solo para Information o superior
                 .WriteTo.Logger(lc => lc
-                    .Filter.ByIncludingOnly(le => le.Level >= LogEventLevel.Information) // Cambiado a Information para que los alumnos vean logs de inicio
+                    .Filter.ByIncludingOnly(le => le.Level >= LogEventLevel.Information)
                     .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"))
 
-                // ALUMNO: LOG DE CONSOLA: Solo registra cuando se consume un endpoint, es una auditorÃ­a limpia. 
+                // LOG DE ARCHIVO: Auditoria limpia de consumo de endpoints
                 .WriteTo.Logger(lc => lc
                     .Filter.ByIncludingOnly(le =>
                     {
-                        // Solo aceptar logs que vengan del Middleware de Serilog
-                        // Esto elimina automÃ¡ticamente los duplicados de Microsoft.AspNetCore.Mvc
                         var isSerilogMiddleware = Matching.FromSource("Serilog.AspNetCore.RequestLoggingMiddleware")(le);
                         if (!isSerilogMiddleware) return false;
 
-                        // Excluir rutas irrelevantes
                         if (le.Properties.TryGetValue("RequestPath", out var pathValue) &&
                             pathValue is ScalarValue scalar && scalar.Value is string path)
                         {
-                            return !path.Contains("/health", StringComparison.OrdinalIgnoreCase) &&
-                                   !path.Contains("/swagger", StringComparison.OrdinalIgnoreCase);
+                            return !path.Contains("/health", System.StringComparison.OrdinalIgnoreCase) &&
+                                   !path.Contains("/swagger", System.StringComparison.OrdinalIgnoreCase);
                         }
 
                         return true;
@@ -48,4 +45,3 @@ namespace Cart.API.Extensions
         }
     }
 }
-
