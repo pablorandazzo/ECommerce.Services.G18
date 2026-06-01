@@ -25,7 +25,7 @@ namespace Notifications.API.Extensions.Endpoints
                 ValidarEnvio(req);
 
                 // 1. Comunicar con Users.API para verificar la existencia del usuario
-                var client = httpClientFactory.CreateClient();
+                var client = httpClientFactory.CreateClient("UsersApi");
                 string usersApiUrl = config.GetValue<string>("ServiceUrls:UsersApi") ?? "http://localhost:5002";
 
                 try
@@ -38,12 +38,12 @@ namespace Notifications.API.Extensions.Endpoints
 
                     if (!response.IsSuccessStatusCode)
                     {
-                        throw new BusinessRuleException("NTF-004", "Error al validar la existencia del usuario en Users.API.");
+                        throw new Exception("Error al validar la existencia del usuario en Users.API.");
                     }
                 }
-                catch (Exception ex) when (ex is not NotFoundException && ex is not BusinessRuleException)
+                catch (Exception ex) when (ex is not NotFoundException)
                 {
-                    throw new BusinessRuleException("NTF-004", "No se pudo establecer comunicación con Users.API. " + ex.Message);
+                    throw new Exception("No se pudo establecer comunicación con Users.API. " + ex.Message, ex);
                 }
 
                 // 2. Simular el envío exitoso
