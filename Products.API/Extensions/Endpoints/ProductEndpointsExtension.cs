@@ -131,7 +131,7 @@ namespace Products.API.Extensions.Endpoints
             .WithTags("Products");
 
             // DELETE /api/products/{id} - Eliminar producto
-            app.MapDelete("/api/products/{id}", async (Guid id, ProductRepository repo, IHttpClientFactory httpClientFactory, IConfiguration config) =>
+            app.MapDelete("/api/products/{id}", async (Guid id, ProductRepository repo, IHttpClientFactory httpClientFactory, IConfiguration config, HttpContext httpContext) =>
             {
                 var product = await repo.GetByIdAsync(id);
                 if (product == null)
@@ -139,8 +139,15 @@ namespace Products.API.Extensions.Endpoints
                     throw new NotFoundException("PRD-001", "Producto no encontrado.");
                 }
 
+                // Obtener correlation ID actual
+                string correlationId = "";
+                if (httpContext.Request.Headers.TryGetValue("X-Correlation-Id", out var val))
+                {
+                    correlationId = val.ToString();
+                }
+
                 // Verificar si tiene órdenes activas llamando a Orders.API
-                var client = httpClientFactory.CreateClient();
+                var client = httpClientFactory.CreateClient("OrdersApi");
                 string ordersApiUrl = config.GetValue<string>("ServiceUrls:OrdersApi") ?? "http://localhost:5003";
 
                 try
@@ -154,11 +161,38 @@ namespace Products.API.Extensions.Endpoints
                             throw new BusinessRuleException("PRD-004", "El producto tiene órdenes activas y no puede eliminarse.");
                         }
                     }
+                    else
+                    {
+                        // Si responde un código de error de Orders.API, lo tratamos como error de comunicación (502 Bad Gateway)
+                        return Results.Problem(
+                            detail: "No se pudo validar el estado de las órdenes en Orders.API.",
+                            instance: $"/api/products/{id}",
+                            statusCode: StatusCodes.Status502BadGateway,
+                            title: "Error de comunicación inter-servicio",
+                            extensions: new Dictionary<string, object?>
+                            {
+                                { "errorCode", "PRD-005" },
+                                { "errorMessage", "No se pudo validar el estado de las órdenes en la API remota." },
+                                { "correlationId", correlationId }
+                            }
+                        );
+                    }
                 }
-                catch (Exception ex) when (ex is not BusinessRuleException)
+                catch (Exception ex) when (ex is not BusinessRuleException && ex is not NotFoundException)
                 {
-                    // Si falla la comunicación, podemos loggearlo o decidir qué hacer.
-                    // Para el TP asumimos que si hay problemas de red, no bloqueamos o dejamos pasar, pero lo ideal es loggear.
+                    // Ante falla de red o comunicación, rechazamos preventivamente (503 Service Unavailable)
+                    return Results.Problem(
+                        detail: "Falla de red o comunicación con Orders.API: " + ex.Message,
+                        instance: $"/api/products/{id}",
+                        statusCode: StatusCodes.Status503ServiceUnavailable,
+                        title: "Servicio no disponible",
+                        extensions: new Dictionary<string, object?>
+                        {
+                            { "errorCode", "PRD-005" },
+                            { "errorMessage", "No se pudo establecer comunicación con la API remota debido a una falla de red." },
+                            { "correlationId", correlationId }
+                        }
+                    );
                 }
 
                 await repo.DeleteAsync(id);

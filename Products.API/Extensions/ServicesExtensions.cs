@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Products.API.ExceptionHandlers;
 using Products.API.HealthChecks;
+using Products.API.Infrastructure;
 using Products.API.Data;
 
 namespace Products.API.Extensions
@@ -12,6 +13,10 @@ namespace Products.API.Extensions
             // Registrar ProblemDetails
             services.AddProblemDetails();
 
+            // Registrar HttpContextAccessor y el delegating handler para propagar Correlation ID en llamadas salientes
+            services.AddHttpContextAccessor();
+            services.AddTransient<CorrelationIdDelegatingHandler>();
+
             // Registro de Handlers en orden jerárquico (Paso a paso Persona A)
             services.AddExceptionHandler<ValidationExceptionHandler>();
             services.AddExceptionHandler<NotFoundExceptionHandler>();
@@ -22,8 +27,9 @@ namespace Products.API.Extensions
             services.AddSingleton<DatabaseInitializer>();
             services.AddScoped<ProductRepository>();
 
-            // Registrar HttpClient para comunicación externa
-            services.AddHttpClient();
+            // Registrar HttpClient configurado con el CorrelationIdDelegatingHandler
+            services.AddHttpClient("OrdersApi")
+                .AddHttpMessageHandler<CorrelationIdDelegatingHandler>();
 
             // Registrar Swagger/OpenAPI
             services.AddEndpointsApiExplorer();
