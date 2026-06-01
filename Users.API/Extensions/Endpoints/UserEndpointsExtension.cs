@@ -64,7 +64,7 @@ namespace Users.API.Extensions.Endpoints
                 if (user == null)
                 {
                     // Si el usuario no existe, devolvemos credenciales incorrectas
-                    throw new NotFoundException("USR-003", "Credenciales incorrectas.");
+                    throw new BusinessRuleException("USR-003", "Credenciales incorrectas.", 401);
                 }
 
                 // Si la cuenta está inactiva (bloqueada)
@@ -72,11 +72,11 @@ namespace Users.API.Extensions.Endpoints
                 {
                     if (user.IntentosFallidos >= 3)
                     {
-                        throw new BusinessRuleException("USR-004", "Su cuenta fue bloqueada por superar el máximo de intentos fallidos. Contacte a soporte.");
+                        throw new BusinessRuleException("USR-004", "Su cuenta fue bloqueada por superar el máximo de intentos fallidos. Contacte a soporte.", 403);
                     }
                     else
                     {
-                        throw new BusinessRuleException("USR-005", "Su cuenta fue suspendida por razones de seguridad. Contacte a soporte.");
+                        throw new BusinessRuleException("USR-005", "Su cuenta fue suspendida por razones de seguridad. Contacte a soporte.", 403);
                     }
                 }
 
@@ -105,11 +105,11 @@ namespace Users.API.Extensions.Endpoints
                     {
                         user.Activo = false;
                         await repo.UpdateAsync(user);
-                        throw new BusinessRuleException("USR-004", "Su cuenta fue bloqueada por superar el máximo de intentos fallidos. Contacte a soporte.");
+                        throw new BusinessRuleException("USR-004", "Su cuenta fue bloqueada por superar el máximo de intentos fallidos. Contacte a soporte.", 403);
                     }
 
                     await repo.UpdateAsync(user);
-                    throw new NotFoundException("USR-003", "Credenciales incorrectas.");
+                    throw new BusinessRuleException("USR-003", "Credenciales incorrectas.", 401);
                 }
             })
             .WithTags("Users");

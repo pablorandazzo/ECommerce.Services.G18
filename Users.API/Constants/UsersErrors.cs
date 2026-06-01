@@ -1,4 +1,4 @@
-﻿namespace Users.API.Constants;
+namespace Users.API.Constants;
 
 public static class UserErrors
 {
@@ -22,7 +22,11 @@ public static class UserErrors
     public static readonly (string Code, string Message, int Status) AccountBlockedFraud =
         ("USR-005", "Su cuenta fue suspendida por razones de seguridad.", 403);
 
-    // USR-006: 500 Internal Error[cite: 1]
+    // USR-006: 404 Not Found
+    public static readonly (string Code, string Message, int Status) UserNotFound =
+        ("USR-006", "Usuario no encontrado.", 404);
+
+    // USR-007: 500 Internal Error
     public static readonly (string Code, string Message, int Status) InternalError =
-        ("USR-006", "Error interno al procesar el usuario.", 500);
+        ("USR-007", "Error interno al procesar el usuario.", 500);
 }
