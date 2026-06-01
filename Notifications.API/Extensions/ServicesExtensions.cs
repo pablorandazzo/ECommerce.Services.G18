@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Notifications.API.ExceptionHandlers;
 using Notifications.API.HealthChecks;
+using Notifications.API.Infrastructure;
 using Notifications.API.Data;
 
 namespace Notifications.API.Extensions
@@ -12,6 +13,10 @@ namespace Notifications.API.Extensions
             // Registrar ProblemDetails
             services.AddProblemDetails();
 
+            // Registrar HttpContextAccessor y el delegating handler para propagar Correlation ID en llamadas salientes
+            services.AddHttpContextAccessor();
+            services.AddTransient<CorrelationIdDelegatingHandler>();
+
             // Registro de Handlers en orden jerárquico (Paso a paso Persona B)
             services.AddExceptionHandler<ValidationExceptionHandler>();
             services.AddExceptionHandler<NotFoundExceptionHandler>();
@@ -22,8 +27,9 @@ namespace Notifications.API.Extensions
             services.AddSingleton<DatabaseInitializer>();
             services.AddScoped<NotificationRepository>();
 
-            // Registrar HttpClient para comunicación con Users.API
-            services.AddHttpClient();
+            // Registrar HttpClient configurado con el CorrelationIdDelegatingHandler
+            services.AddHttpClient("UsersApi")
+                .AddHttpMessageHandler<CorrelationIdDelegatingHandler>();
 
             // Registrar Swagger/OpenAPI
             services.AddEndpointsApiExplorer();
