@@ -213,7 +213,7 @@ namespace Orders.API.Extensions.Endpoints
 
                     if (product.Stock < itemReq.Cantidad)
                     {
-                        throw new BusinessRuleException("ORD-005", $"Stock insuficiente para '{product.Nombre}'. Disponible: {product.Stock}, solicitado: {itemReq.Cantidad}.");
+                        throw new BusinessRuleException("ORD-005", $"Stock insuficiente para '{product.Nombre}'. Disponible: {product.Stock}, solicitado: {itemReq.Cantidad}.", 422);
                     }
 
                     total += itemReq.Cantidad * product.Precio;
@@ -228,35 +228,7 @@ namespace Orders.API.Extensions.Endpoints
                     productsToUpdate.Add((product, itemReq.Cantidad));
                 }
 
-                // 3. Deducir stock llamando a Products.API para cada producto
-                foreach (var update in productsToUpdate)
-                {
-                    int nuevoStock = update.Product.Stock - update.CantidadVendida;
-                    
-                    try
-                    {
-                        // Armamos el request para actualizar el stock
-                        var updateRequest = new {
-                            Nombre = update.Product.Nombre,
-                            Descripcion = update.Product.Descripcion,
-                            Precio = update.Product.Precio,
-                            Stock = nuevoStock,
-                            Categoria = update.Product.Categoria
-                        };
-
-                        var response = await client.PutAsJsonAsync($"{productsApiUrl}/api/products/{update.Product.Id}", updateRequest);
-                        if (!response.IsSuccessStatusCode)
-                        {
-                            throw new BusinessRuleException("ORD-007", $"No se pudo actualizar el stock del producto '{update.Product.Nombre}'.");
-                        }
-                    }
-                    catch (Exception ex) when (ex is not BusinessRuleException)
-                    {
-                        throw new BusinessRuleException("ORD-007", "Error de red al actualizar stock en Products.API. " + ex.Message);
-                    }
-                }
-
-                // 4. Registrar la orden en nuestra base de datos
+                // 3. Crear la orden localmente en estado inicial "Pendiente"
                 var order = new Order
                 {
                     Id = Guid.NewGuid(),
@@ -269,7 +241,75 @@ namespace Orders.API.Extensions.Endpoints
 
                 await repo.CreateAsync(order);
 
-                // 5. Simular envío asíncrono de notificación
+                // 4. Deducir stock remoto en Products.API con compensación automática
+                var successfulUpdates = new List<(ProductDto Product, int OriginalStock)>();
+                bool stockUpdateFailed = false;
+                string failReason = "";
+
+                foreach (var update in productsToUpdate)
+                {
+                    int nuevoStock = update.Product.Stock - update.CantidadVendida;
+                    
+                    try
+                    {
+                        var updateRequest = new {
+                            Nombre = update.Product.Nombre,
+                            Descripcion = update.Product.Descripcion,
+                            Precio = update.Product.Precio,
+                            Stock = nuevoStock,
+                            Categoria = update.Product.Categoria
+                        };
+
+                        var response = await client.PutAsJsonAsync($"{productsApiUrl}/api/products/{update.Product.Id}", updateRequest);
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            stockUpdateFailed = true;
+                            failReason = $"No se pudo actualizar el stock del producto '{update.Product.Nombre}'.";
+                            break;
+                        }
+                        successfulUpdates.Add((update.Product, update.Product.Stock));
+                    }
+                    catch (Exception ex)
+                    {
+                        stockUpdateFailed = true;
+                        failReason = "Error de red al actualizar stock en Products.API. " + ex.Message;
+                        break;
+                    }
+                }
+
+                if (stockUpdateFailed)
+                {
+                    // COMPENSACIÓN: Revertir stock descontado en Products.API
+                    foreach (var rollBack in successfulUpdates)
+                    {
+                        try
+                        {
+                            var revertRequest = new {
+                                Nombre = rollBack.Product.Nombre,
+                                Descripcion = rollBack.Product.Descripcion,
+                                Precio = rollBack.Product.Precio,
+                                Stock = rollBack.OriginalStock,
+                                Categoria = rollBack.Product.Categoria
+                            };
+                            await client.PutAsJsonAsync($"{productsApiUrl}/api/products/{rollBack.Product.Id}", revertRequest);
+                        }
+                        catch
+                        {
+                            // Ignoramos errores de compensación para continuar deshaciendo el resto si es posible
+                        }
+                    }
+
+                    // COMPENSACIÓN: Cancelar orden local en base de datos
+                    await repo.UpdateStatusAsync(order.Id, "Cancelada");
+
+                    throw new BusinessRuleException("ORD-007", "Error al procesar el stock de la orden: " + failReason, 500);
+                }
+
+                // 5. Transición final: Confirmar orden localmente tras deducir stock con éxito
+                order.Estado = "Confirmada";
+                await repo.UpdateStatusAsync(order.Id, "Confirmada");
+
+                // 6. Simular envío asíncrono de notificación (Sincronizada con el estado "Confirmada")
                 try
                 {
                     var notificationReq = new SendNotificationRequest(

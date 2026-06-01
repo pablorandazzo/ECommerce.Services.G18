@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Orders.API.Exceptions;
 
@@ -16,10 +16,34 @@ namespace Orders.API.ExceptionHandlers
 
             BusinessRuleException ex = (BusinessRuleException)exception;
 
+            int statusCode = ex.StatusCode;
+
+            string title;
+            string rfcType;
+            switch (statusCode)
+            {
+                case StatusCodes.Status401Unauthorized:
+                    title = "No Autorizado";
+                    rfcType = "https://tools.ietf.org/html/rfc7235#section-3.1";
+                    break;
+                case StatusCodes.Status403Forbidden:
+                    title = "Prohibido";
+                    rfcType = "https://tools.ietf.org/html/rfc7231#section-6.5.3";
+                    break;
+                case StatusCodes.Status422UnprocessableEntity:
+                    title = "Entidad no procesable";
+                    rfcType = "https://tools.ietf.org/html/rfc4918#section-11.2";
+                    break;
+                default:
+                    title = "Conflicto de Negocio";
+                    rfcType = "https://tools.ietf.org/html/rfc7231#section-6.5.9";
+                    break;
+            }
+
             ProblemDetails problemDetails = new ProblemDetails();
-            problemDetails.Status = StatusCodes.Status409Conflict;
-            problemDetails.Title = "Conflicto de Negocio";
-            problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.9";
+            problemDetails.Status = statusCode;
+            problemDetails.Title = title;
+            problemDetails.Type = rfcType;
             problemDetails.Detail = ex.Message;
             problemDetails.Instance = httpContext.Request.Path;
 
@@ -33,7 +57,7 @@ namespace Orders.API.ExceptionHandlers
             }
             problemDetails.Extensions.Add("correlationId", correlationId);
 
-            httpContext.Response.StatusCode = StatusCodes.Status409Conflict;
+            httpContext.Response.StatusCode = statusCode;
             await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 
             return true;
