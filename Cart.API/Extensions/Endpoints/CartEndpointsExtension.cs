@@ -101,7 +101,7 @@ namespace Cart.API.Extensions.Endpoints
 
                 if (product.Stock < cantidadRequerida)
                 {
-                    throw new BusinessRuleException("CRT-003", $"Stock insuficiente. Disponible: {product.Stock}, solicitado: {cantidadRequerida}.");
+                    throw new BusinessRuleException("CRT-003", $"Stock insuficiente. Disponible: {product.Stock}, solicitado: {cantidadRequerida}.", 422);
                 }
 
                 // 3. Agregar el producto al carrito
@@ -172,7 +172,7 @@ namespace Cart.API.Extensions.Endpoints
 
                 if (product.Stock < req.Cantidad)
                 {
-                    throw new BusinessRuleException("CRT-003", $"Stock insuficiente. Disponible: {product.Stock}, solicitado: {req.Cantidad}.");
+                    throw new BusinessRuleException("CRT-003", $"Stock insuficiente. Disponible: {product.Stock}, solicitado: {req.Cantidad}.", 422);
                 }
 
                 // 2. Actualizar el ítem
