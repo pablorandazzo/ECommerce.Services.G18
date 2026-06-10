@@ -36,24 +36,30 @@ namespace Orders.API.Middleware
             var originalResponseBody = context.Response.Body;
             using (var memStream = new MemoryStream())
             {
-                context.Response.Body = memStream;
+                try
+                {
+                    context.Response.Body = memStream;
 
-                await _next(context);
+                    await _next(context);
 
-                memStream.Position = 0;
-                var responseBody = await new StreamReader(memStream).ReadToEndAsync();
+                    memStream.Position = 0;
+                    var responseBody = await new StreamReader(memStream).ReadToEndAsync();
 
-                memStream.Position = 0;
-                await memStream.CopyToAsync(originalResponseBody);
-                context.Response.Body = originalResponseBody;
+                    memStream.Position = 0;
+                    await memStream.CopyToAsync(originalResponseBody);
 
-                _logger.LogInformation(
-                    "AUDIT {@Method} {@Path} {@StatusCode} {@RequestBody} {@ResponseBody}",
-                    context.Request.Method,
-                    context.Request.Path.Value,
-                    context.Response.StatusCode,
-                    TryParseJson(requestBody),
-                    TryParseJson(responseBody));
+                    _logger.LogInformation(
+                        "AUDIT {@Method} {@Path} {@StatusCode} {@RequestBody} {@ResponseBody}",
+                        context.Request.Method,
+                        context.Request.Path.Value,
+                        context.Response.StatusCode,
+                        TryParseJson(requestBody),
+                        TryParseJson(responseBody));
+                }
+                finally
+                {
+                    context.Response.Body = originalResponseBody;
+                }
             }
         }
 
