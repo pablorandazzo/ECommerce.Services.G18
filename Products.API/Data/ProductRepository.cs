@@ -11,6 +11,8 @@ namespace Products.API.Data
 {
     public class ProductRepository
     {
+        private const string ProductColumns = "Id, Nombre, Descripcion, Precio, Stock, Categoria, FechaCreacion";
+
         private readonly IConfiguration _config;
 
         public ProductRepository(IConfiguration config)
@@ -33,7 +35,7 @@ namespace Products.API.Data
         {
             using (SqliteConnection conn = CreateConnection())
             {
-                string query = "SELECT Id, Nombre, Descripcion, Precio, Stock, Categoria, FechaCreacion FROM products WHERE 1=1";
+                string query = $"SELECT {ProductColumns} FROM products WHERE 1=1";
                 var parameters = new DynamicParameters();
 
                 if (!string.IsNullOrEmpty(categoria))
@@ -48,7 +50,8 @@ namespace Products.API.Data
                     parameters.Add("Nombre", "%" + nombre + "%");
                 }
 
-                return await conn.QueryAsync<Product>(query, parameters);
+                IEnumerable<ProductRow> rows = await conn.QueryAsync<ProductRow>(query, parameters);
+                return rows.Select(MapProduct);
             }
         }
 
@@ -57,8 +60,9 @@ namespace Products.API.Data
         {
             using (SqliteConnection conn = CreateConnection())
             {
-                string query = "SELECT Id, Nombre, Descripcion, Precio, Stock, Categoria, FechaCreacion FROM products WHERE Id = @Id";
-                return await conn.QueryFirstOrDefaultAsync<Product>(query, new { Id = id.ToString() });
+                string query = $"SELECT {ProductColumns} FROM products WHERE Id = @Id";
+                ProductRow? row = await conn.QueryFirstOrDefaultAsync<ProductRow>(query, new { Id = id.ToString() });
+                return row is null ? null : MapProduct(row);
             }
         }
 
@@ -67,8 +71,9 @@ namespace Products.API.Data
         {
             using (SqliteConnection conn = CreateConnection())
             {
-                string query = "SELECT Id, Nombre, Descripcion, Precio, Stock, Categoria, FechaCreacion FROM products WHERE Nombre = @Nombre AND Categoria = @Categoria";
-                return await conn.QueryFirstOrDefaultAsync<Product>(query, new { Nombre = nombre, Categoria = categoria });
+                string query = $"SELECT {ProductColumns} FROM products WHERE Nombre = @Nombre AND Categoria = @Categoria";
+                ProductRow? row = await conn.QueryFirstOrDefaultAsync<ProductRow>(query, new { Nombre = nombre, Categoria = categoria });
+                return row is null ? null : MapProduct(row);
             }
         }
 
@@ -129,6 +134,31 @@ namespace Products.API.Data
                 int rowsAffected = await conn.ExecuteAsync(query, new { Id = id.ToString() });
                 return rowsAffected > 0;
             }
+        }
+
+        private static Product MapProduct(ProductRow row)
+        {
+            return new Product
+            {
+                Id = Guid.Parse(row.Id),
+                Nombre = row.Nombre,
+                Descripcion = row.Descripcion,
+                Precio = row.Precio,
+                Stock = row.Stock,
+                Categoria = row.Categoria,
+                FechaCreacion = DateTime.Parse(row.FechaCreacion)
+            };
+        }
+
+        private sealed class ProductRow
+        {
+            public string Id { get; set; } = string.Empty;
+            public string Nombre { get; set; } = string.Empty;
+            public string? Descripcion { get; set; }
+            public decimal Precio { get; set; }
+            public int Stock { get; set; }
+            public string Categoria { get; set; } = string.Empty;
+            public string FechaCreacion { get; set; } = string.Empty;
         }
     }
 }
