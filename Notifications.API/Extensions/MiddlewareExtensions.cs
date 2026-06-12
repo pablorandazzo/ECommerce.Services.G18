@@ -71,6 +71,16 @@ namespace Notifications.API.Extensions
             {
                 ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
             });
+            app.MapHealthChecks("/health/ready", new HealthCheckOptions
+            {
+                Predicate = _ => true,
+                ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+            });
+            app.MapHealthChecks("/health/live", new HealthCheckOptions
+            {
+                Predicate = _ => false,
+                ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+            });
             app.MapHealthChecksUI(setup => 
             {
                 setup.UIPath = "/health-ui";
