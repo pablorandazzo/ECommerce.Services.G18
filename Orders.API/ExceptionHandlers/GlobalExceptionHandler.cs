@@ -26,6 +26,7 @@ namespace Orders.API.ExceptionHandlers
             }
             problemDetails.Extensions.Add("correlationId", correlationId);
 
+            httpContext.Items["ErrorCode"] = Constants.OrderErrors.InternalError.Code;
             httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
             await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 

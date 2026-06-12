@@ -9,6 +9,7 @@ using Cart.API.Data;
 using Cart.API.Extensions.Endpoints;
 using Serilog;
 using System;
+using System.Diagnostics;
 
 namespace Cart.API.Extensions
 {
@@ -16,6 +17,8 @@ namespace Cart.API.Extensions
     {
         public static void UseAppMiddleware(this WebApplication app)
         {
+            var serviceName = app.Configuration["ServiceName"] ?? app.Environment.ApplicationName;
+
             // 1. Mecanismo de Correlation ID
             app.Use(async (context, next) =>
             {
@@ -42,16 +45,51 @@ namespace Cart.API.Extensions
                 }
             });
 
-            // 2. Manejo Global de Excepciones
-            app.UseExceptionHandler();
-
-            // 3. Request Logging de Serilog estructurado (estilo MiniApi)
+            // 2. Request Logging de Serilog estructurado (estilo MiniApi)
             app.UseSerilogRequestLogging(options =>
             {
                 options.GetLevel = (httpContext, _, ex) =>
                     (ex != null) ? Serilog.Events.LogEventLevel.Error :
                         (httpContext.Request.Path.StartsWithSegments("/health"))
                             ? Serilog.Events.LogEventLevel.Verbose : Serilog.Events.LogEventLevel.Information;
+
+                options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+                {
+                    diagnosticContext.Set("Service", serviceName);
+
+                    if (httpContext.Items.TryGetValue("CorrelationId", out var correlationId) && correlationId is string correlationIdValue && !string.IsNullOrWhiteSpace(correlationIdValue))
+                    {
+                        diagnosticContext.Set("CorrelationId", correlationIdValue);
+                    }
+
+                    if (httpContext.Items.TryGetValue("ErrorCode", out var errorCode) && errorCode is string errorCodeValue && !string.IsNullOrWhiteSpace(errorCodeValue))
+                    {
+                        diagnosticContext.Set("errorCode", errorCodeValue);
+                    }
+
+                    if (httpContext.Items.TryGetValue("RequestDurationMs", out var requestDurationMs) && requestDurationMs is double requestDurationValue)
+                    {
+                        diagnosticContext.Set("RequestDurationMs", requestDurationValue);
+                    }
+                };
+            });
+
+            // 3. Manejo Global de Excepciones
+            app.UseExceptionHandler();
+
+            app.Use(async (context, next) =>
+            {
+                var stopwatch = Stopwatch.StartNew();
+
+                try
+                {
+                    await next();
+                }
+                finally
+                {
+                    stopwatch.Stop();
+                    context.Items["RequestDurationMs"] = stopwatch.Elapsed.TotalMilliseconds;
+                }
             });
 
             // 4. Middleware de Auditoría para registrar POST/PUT/DELETE

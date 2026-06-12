@@ -38,6 +38,7 @@ namespace Users.API.ExceptionHandlers
             problemDetails.Extensions.Add("correlationId", correlationId);
 
             // Configuramos la respuesta y la enviamos como JSON
+            httpContext.Items["ErrorCode"] = ex.ErrorCode;
             httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
             await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 

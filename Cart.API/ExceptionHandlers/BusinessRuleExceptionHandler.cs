@@ -57,6 +57,7 @@ namespace Cart.API.ExceptionHandlers
             }
             problemDetails.Extensions.Add("correlationId", correlationId);
 
+            httpContext.Items["ErrorCode"] = ex.ErrorCode;
             httpContext.Response.StatusCode = statusCode;
             await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 

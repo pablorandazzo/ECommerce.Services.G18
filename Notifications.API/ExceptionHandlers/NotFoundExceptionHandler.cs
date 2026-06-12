@@ -35,6 +35,7 @@ namespace Notifications.API.ExceptionHandlers
             }
             problemDetails.Extensions.Add("correlationId", correlationId);
 
+            httpContext.Items["ErrorCode"] = ex.ErrorCode;
             httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
             await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 

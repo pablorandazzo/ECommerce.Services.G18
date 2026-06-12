@@ -1,6 +1,7 @@
 using Serilog;
 using Serilog.Events;
 using Serilog.Filters;
+using Serilog.Formatting.Json;
 
 namespace Products.API.Extensions
 {
@@ -8,11 +9,14 @@ namespace Products.API.Extensions
     {
         public static void AddAppLogging(this WebApplicationBuilder builder)
         {
+            var serviceName = builder.Configuration["ServiceName"] ?? builder.Environment.ApplicationName;
+
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Information()
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                 .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Information)
                 .Enrich.FromLogContext()
+                .Enrich.WithProperty("Service", serviceName)
 
                 // ALUMNO: LOG DE CONSOLA: libre para usarse como quieran
                 .WriteTo.Logger(lc => lc
@@ -40,7 +44,7 @@ namespace Products.API.Extensions
                     })
                     .WriteTo.File(
                         path: "logs/audit.log",
-                        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} | {RequestMethod} | {RequestPath} | {StatusCode}{NewLine}",
+                        formatter: new JsonFormatter(renderMessage: true),
                         rollingInterval: RollingInterval.Day))
                 .CreateLogger();
 

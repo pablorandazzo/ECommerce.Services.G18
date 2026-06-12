@@ -26,6 +26,7 @@ namespace Users.API.ExceptionHandlers
             }
             problemDetails.Extensions.Add("correlationId", correlationId);
 
+            httpContext.Items["ErrorCode"] = Constants.UserErrors.InternalError.Code;
             httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
             await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 
