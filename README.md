@@ -65,7 +65,7 @@ El sistema inicializa Serilog en cada API leyendo desde `appsettings.json` y con
 * **Archivo de Auditoría (`logs/audit.log`):** Filtra para registrar **exclusivamente** eventos de acceso a endpoints (`RequestLoggingMiddleware`), descartando ruidos de consultas a `/swagger` o `/health` automáticos.
 
 ### 4.2. Middleware de Auditoría (`AuditMiddleware`)
-Cualquier solicitud de escritura (`POST`, `PUT`, `DELETE`) es interceptada por el middleware de auditoría personalizado. Este middleware lee el cuerpo de entrada de la solicitud y el de salida de la respuesta de forma segura (usando streams rebuferizados) y los registra en formato estructurado JSON:
+Cualquier solicitud de escritura (`POST`, `PUT`, `DELETE`) es interceptada por el middleware de auditoría personalizado. Este middleware lee el cuerpo de entrada de la solicitud y el de salida de la respuesta y los registra en formato estructurado JSON:
 `_logger.LogInformation("AUDIT {@Method} {@Path} {@StatusCode} {@RequestBody} {@ResponseBody}")`
 
 ### 4.3. Trazabilidad con Correlation ID
