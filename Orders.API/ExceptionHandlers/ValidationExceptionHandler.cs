@@ -8,19 +8,19 @@ namespace Orders.API.ExceptionHandlers
     {
         public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
-            // Verificamos si la excepciÃ³n es de tipo ValidationException
+            // Verificamos si la excepción es de tipo ValidationException
             if (exception is ValidationException == false)
             {
                 return false; // No es de este tipo, que siga el siguiente handler
             }
 
-            // Convertimos la excepciÃ³n al tipo especÃ­fico para leer sus datos
+            // Convertimos la excepción al tipo específico para leer sus datos
             ValidationException ex = (ValidationException)exception;
 
             // Creamos el objeto de respuesta de error (Problem Details)
             ProblemDetails problemDetails = new ProblemDetails();
             problemDetails.Status = StatusCodes.Status400BadRequest;
-            problemDetails.Title = "Error de ValidaciÃ³n";
+            problemDetails.Title = "Error de Validación";
             problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1";
             problemDetails.Detail = ex.Message;
             problemDetails.Instance = httpContext.Request.Path;

@@ -12,7 +12,7 @@ namespace Users.API.HealthChecks
     {
         private readonly IConfiguration _config;
 
-        // Constructor para recibir la configuraciÃ³n de la aplicaciÃ³n (inyectada)
+        // Constructor para recibir la configuración de la aplicación (inyectada)
         public PersistencyHealthCheck(IConfiguration config)
         {
             _config = config;
@@ -22,19 +22,19 @@ namespace Users.API.HealthChecks
         {
             try
             {
-                // Obtenemos la cadena de conexiÃ³n del archivo appsettings.json o usamos una por defecto
+                // Obtenemos la cadena de conexión del archivo appsettings.json o usamos una por defecto
                 string? connectionString = _config.GetConnectionString("DefaultConnection");
                 if (string.IsNullOrEmpty(connectionString))
                 {
                     connectionString = "Data Source=users.db";
                 }
 
-                // Abrimos una conexiÃ³n a la base de datos SQLite para probar la disponibilidad
+                // Abrimos una conexión a la base de datos SQLite para probar la disponibilidad
                 using (SqliteConnection connection = new SqliteConnection(connectionString))
                 {
                     await connection.OpenAsync(cancellationToken);
 
-                    // Ejecutamos una consulta ultra rÃ¡pida para verificar que responde
+                    // Ejecutamos una consulta ultra rápida para verificar que responde
                     await connection.ExecuteScalarAsync<int>("SELECT 1");
                 }
 
@@ -43,7 +43,7 @@ namespace Users.API.HealthChecks
             }
             catch (Exception ex)
             {
-                // Si ocurre algÃºn error (no se puede abrir el archivo, etc.), devolvemos un estado No Saludable
+                // Si ocurre algún error (no se puede abrir el archivo, etc.), devolvemos un estado No Saludable
                 return HealthCheckResult.Unhealthy("No se pudo conectar a la base de datos SQLite.", ex);
             }
         }

@@ -8,13 +8,13 @@ namespace Orders.API.ExceptionHandlers
     {
         public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
-            // Verificamos si la excepciÃ³n es de tipo NotFoundException
+            // Verificamos si la excepción es de tipo NotFoundException
             if (exception is NotFoundException == false)
             {
                 return false;
             }
 
-            // Convertimos al tipo especÃ­fico
+            // Convertimos al tipo específico
             NotFoundException ex = (NotFoundException)exception;
 
             // Construimos la respuesta
